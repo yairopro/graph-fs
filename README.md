@@ -3,7 +3,7 @@ Allow to browse files like a graph where each file or directory is a node.
 
 
 ```
-const file = new Node("/path/to/file");
+const file = new Node("/path/to/file.ext");
 const directory = new Node(["path", "to", "directory"]);
 
 const sameFile = new Node("/path/to/file.ext");
