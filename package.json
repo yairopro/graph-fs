@@ -1,0 +1,16 @@
+{
+  "name": "graph-fs",
+  "version": "0.0.0",
+  "description": "Module to allow to browse files like a graph where each file or directory is a node.",
+  "main": "src/index.js",
+  "repository": "https://github.com/yairopro/graph-fs.git",
+  "author": "yair <yairopro@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^25.2.3"
+  }
+}

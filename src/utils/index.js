@@ -1,0 +1,1 @@
+exports.lastItemOf = require("./lastItemOf");
