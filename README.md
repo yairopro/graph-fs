@@ -31,3 +31,8 @@ const newDirectory = directory.newDirectory("new-directory");
 directory.clear() // delete nodes inside
 directory.delete() // delete directory
 ```
+
+Utilities
+```
+Node.cwd // = new Node(process.cwd());
+```
