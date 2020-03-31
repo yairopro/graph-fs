@@ -12,5 +12,8 @@
   },
   "devDependencies": {
     "jest": "^25.2.3"
+  },
+  "dependencies": {
+    "weakvaluemap": "^0.3.2"
   }
 }

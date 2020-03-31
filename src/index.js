@@ -23,12 +23,12 @@ module.exports = class Node {
 		}
 
 		const absolutePathString = absolutePath.join('/');
-		const cached = cache[absolutePathString];
+		const cached = cache.get(absolutePathString);
 		if (cached)
 			return cached;
 
 		this.path = absolutePath;
-		cache[absolutePathString] = this;
+		cache.set(absolutePathString, this);
 	}
 
 	get absolute(){
@@ -131,4 +131,5 @@ module.exports = class Node {
 	}
 };
 
-const cache = {/* path -> Node */};
+const WeakValueMap = require("weakvaluemap");
+const cache = new WeakValueMap();
