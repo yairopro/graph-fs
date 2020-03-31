@@ -1,5 +1,5 @@
-const Node = require("../src");
-const cwd = process.cwd();
+const {Node} = require("../src");
+const cwd = new Node(process.cwd());
 
 test('new Node(string)', () =>
 	expect(new Node("/a/b/c"))
@@ -16,14 +16,9 @@ test('Node singleton by path', () =>
 		.toBe(new Node(['a', 'b', 'c']))
 );
 
-test('Node.cwd', () =>
-	expect(Node.cwd.absolute)
-		.toBe(cwd)
-);
-
 test('Node.prototype.toString()', () =>
-	expect(Node.cwd.toString())
-		.toBe(cwd + '/')
+	expect(cwd.toString())
+		.toBe(process.cwd() + '/')
 );
 
 test('Node.prototype.name', () => {
@@ -82,7 +77,7 @@ test('Node.prototype.newFile(string, [string])', () => {
 	const generatedFile = generatedDirectory.newFile("mock", content);
 
 	expect(generatedFile.getContent()).toBe(content);
-	expect(() => Node.cwd.getContent())
+	expect(() => cwd.getContent())
 		.toThrowError();
 });
 

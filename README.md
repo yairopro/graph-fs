@@ -1,6 +1,9 @@
 # graph-fs
 Allow to browse files like a graph where each file or directory is a node.
 
+```
+const {Node} = require("graph-fs");
+```
 
 ```
 const file = new Node("/path/to/file.ext");
@@ -30,9 +33,4 @@ const newDirectory = directory.newDirectory("new-directory");
 
 directory.clear() // delete nodes inside
 directory.delete() // delete directory
-```
-
-Utilities
-```
-Node.cwd // = new Node(process.cwd());
 ```
