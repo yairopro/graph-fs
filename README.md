@@ -34,11 +34,11 @@ parent === directory // true
 
 ```
 directory.children; // Node[]
-file.getContent([options = "utf8"]); // string or buffer
+file.getContent([options = "utf8"]); // string
 ```
 
 ```
-directory.newFile("newFile.ext", [string content]); // Node instance
+directory.newFile("newFile.ext", [content]); // Node instance
 directory.newDirectory("new-directory"); // Node instance
 ```
 
