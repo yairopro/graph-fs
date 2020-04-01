@@ -10,27 +10,39 @@ const file = new Node("/path/to/file.ext");
 const directory = new Node(["path", "to", "directory"]);
 
 const sameFile = new Node("/path/to/file.ext");
-sameFile === file; // true
+sameFile === file; // true (same instance)
+```
 
+```
+file.exists; // boolean
 file.is.file; // true
 file.is.directory; // false
+```
 
-file.exists; // boolean
-
+```
 directory.absolute; // "/path/to/directory"
 directory.toString(); // "/path/to/directory/"
 file.toString(); // "/path/to/file.ext"
 file.name; // "file.ext"
+```
 
-file.parent // Node("/path/to/")
-file.resolve("..") // Node("/path/to/")
+```
+const parent = file.parent // Node("/path/to/")
+const directory = file.resolve("..") // idem
+parent === directory // true
+```
 
+```
 directory.children; // Node[]
 file.getContent([options = "utf8"]); // string or buffer
+```
 
-const newfile = directory.newFile("newFile.ext", [string content]);
-const newDirectory = directory.newDirectory("new-directory");
+```
+directory.newFile("newFile.ext", [string content]); // Node instance
+directory.newDirectory("new-directory"); // Node instance
+```
 
+```
 directory.clear() // delete nodes inside
 directory.delete() // delete directory
 ```

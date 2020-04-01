@@ -26,10 +26,16 @@ module.exports = class Node {
 		cache.set(absolutePathString, this);
 	}
 
+	/**
+	 * @return {string} Absolute path without '/' at the end.
+	 */
 	get absolute(){
 		return '/' + this.path.join('/');
 	}
 
+	/**
+	 * @return {string} Absolute path with '/' at the end for directories.
+	 */
 	toString(){
 		let absolute = this.absolute;
 		if (this.is.directory)
@@ -37,37 +43,53 @@ module.exports = class Node {
 		return absolute;
 	}
 
+	/**
+	 * @return {string} Full name of the node.
+	 */
 	get name(){
 		const {path} = this;
 		return lastItemOf(path);
 	}
 
+	/**
+	 * @return {boolean} If the node exists.
+	 */
 	get exists(){
 		return FileSystem.existsSync(this.absolute);
 	}
 
+	/**
+	 * @return {Node} Parent node.
+	 */
 	get parent(){
-		if (this.path.length > 1){
-			const parentPath = this.path.slice(0, -1);
-			return new Node(parentPath);
-		}
+		return this.resolve("..");
 	}
 
+	/**
+	 * @return {{file: boolean, directory: boolean}} Object indicating what is the node.
+	 */
 	get is(){
 		const exists = this.exists;
-		const absolute = this.absolute;
+		const infos = exists && FileSystem.lstatSync(this.absolute);
 		return {
-			file:  exists && FileSystem.lstatSync(absolute).isFile(),
-			directory:  exists && FileSystem.lstatSync(absolute).isDirectory(),
+			file:  infos && infos.isFile(),
+			directory:  infos && infos.isDirectory(),
 		};
 	}
 
-
+	/**
+	 * @param relative {string} Relative path from the current node.
+	 * @return {Node} The node relative from the current one (even if it doesn't exists).
+	 */
 	resolve(relative) {
 		const absolute = Path.resolve(this.absolute, relative);
 		return new Node(absolute);
 	}
 
+	/**
+	 * @param name {string} Name of the directory to create as child of current node.
+	 * @return {Node} Node instance of the new created child directory.
+	 */
 	newDirectory(name){
 		const directory = this.resolve(name);
 
@@ -78,18 +100,27 @@ module.exports = class Node {
 		return directory;
 	}
 
-	newFile(fullName, content = ""){
+	/**
+	 * @param fullName {string} Name of the file to create as child of current node.
+	 * @param content {*} Content to write inside the file at its creation.
+	 * @param options {WriteFileOptions | string = "utf8"}
+	 * @return {Node} Node instance of the new created child file.
+	 */
+	newFile(fullName, content = "", options = "utf8"){
 		const file = this.resolve(fullName);
 
 		if (file.exists)
 			throw new Error("File already exists.");
 
-		content = content ? String(content) : "";
-		FileSystem.writeFileSync(file.absolute, content);
+		FileSystem.writeFileSync(file.absolute, content, options);
 
 		return file;
 	}
 
+	/**
+	 * @param options {{encoding: string, flag?: string} | string = "utf8"}
+	 * @return {string} The entire content of the file.
+	 */
 	getContent(options = "utf8"){
 		if (!this.is.file)
 			throw new Error(`The node is not a file: ${this.toString()}`);
@@ -97,22 +128,35 @@ module.exports = class Node {
 		return FileSystem.readFileSync(this.absolute, options);
 	}
 
+	/**
+	 * @return {Node[]} Children nodes of the current directory.
+	 */
 	get children() {
 		const absolute = this.toString(); // needs '/' at end
 		return FileSystem.readdirSync(absolute)
 			.map(name => this.resolve(name));
 	}
 
+	/**
+	 * Clear the content of the node:
+	 * * file: clear content.
+	 * * directory: delete children.
+	 */
 	clear(){
+		if (!this.exists)
+			throw new Error(`Node does not exist: ${this}`);
+
 		const is = this.is;
-		if (is.file){
-			//TODO
-		}
+		if (is.file)
+			FileSystem.writeFileSync(this.absolute, "", "utf8");
 
 		else if (is.directory)
 			this.children.forEach(child => child.delete());
 	}
 
+	/**
+	 * Delete current node.
+	 */
 	delete(){
 		if (!this.exists)
 			return;

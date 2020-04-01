@@ -89,9 +89,18 @@ test('Node.prototype.children', () => {
 });
 
 test('Node.prototype.clear', () => {
+	const child = generatedDirectory.children[0]; // keep ref to deleted child
+
+	child.clear();
+	expect(child.getContent())
+		.toBe("");
+
 	generatedDirectory.clear();
 	expect(generatedDirectory.children)
 		.toEqual([]);
+
+	expect(() => child.clear())
+		.toThrowError();
 });
 
 test('Node.prototype.delete()', () => {
