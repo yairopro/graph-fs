@@ -1,3 +1,6 @@
-module.exports = function lastItemOf(array){
-	return array.slice(-1)[0];
+function lastItemOf(array){
+	return array[array.length -1];
 };
+
+module.exports = lastItemOf;
+module.exports.default = lastItemOf;

@@ -1,11 +1,11 @@
 const Path = require("path");
 const FileSystem = require("fs");
-const {lastItemOf} = require("./utils");
+const { lastItemOf, isDefined, toString } = require("./utils");
 
 module.exports = class Node {
 	constructor(absolutePath) {
 		// convert to array
-		if (typeof absolutePath === "string"){
+		if (typeof absolutePath === "string") {
 			absolutePath = absolutePath.split('/');
 
 			// remove empty string at start
@@ -29,14 +29,14 @@ module.exports = class Node {
 	/**
 	 * @return {string} Absolute path without '/' at the end.
 	 */
-	get absolute(){
+	get absolute() {
 		return '/' + this.path.join('/');
 	}
 
 	/**
 	 * @return {string} Absolute path with '/' at the end for directories.
 	 */
-	toString(){
+	toString() {
 		let absolute = this.absolute;
 		if (this.is.directory)
 			absolute += '/';
@@ -46,34 +46,34 @@ module.exports = class Node {
 	/**
 	 * @return {string} Full name of the node.
 	 */
-	get name(){
-		const {path} = this;
+	get name() {
+		const { path } = this;
 		return lastItemOf(path);
 	}
 
 	/**
 	 * @return {boolean} If the node exists.
 	 */
-	get exists(){
+	get exists() {
 		return FileSystem.existsSync(this.absolute);
 	}
 
 	/**
 	 * @return {Node} Parent node.
 	 */
-	get parent(){
+	get parent() {
 		return this.resolve("..");
 	}
 
 	/**
 	 * @return {{file: boolean, directory: boolean}} Object indicating what is the node.
 	 */
-	get is(){
+	get is() {
 		const exists = this.exists;
 		const infos = exists && FileSystem.lstatSync(this.absolute);
 		return {
-			file:  infos && infos.isFile(),
-			directory:  infos && infos.isDirectory(),
+			file: infos && infos.isFile(),
+			directory: infos && infos.isDirectory(),
 		};
 	}
 
@@ -82,7 +82,7 @@ module.exports = class Node {
 	 * @return {Node} The node relative from the current one (even if it doesn't exists).
 	 */
 	resolve(relative) {
-		const absolute = Path.resolve(this.absolute, relative);
+		const absolute = Path.resolve(this.absolute, toString(relative));
 		return new Node(absolute);
 	}
 
@@ -90,7 +90,7 @@ module.exports = class Node {
 	 * @param name {string} Name of the directory to create as child of current node.
 	 * @return {Node} Node instance of the new created child directory.
 	 */
-	newDirectory(name){
+	newDirectory(name) {
 		const directory = this.resolve(name);
 
 		if (directory.exists)
@@ -106,7 +106,7 @@ module.exports = class Node {
 	 * @param options {WriteFileOptions | string = "utf8"}
 	 * @return {Node} Node instance of the new created child file.
 	 */
-	newFile(fullName, content = "", options = "utf8"){
+	newFile(fullName, content = "", options = "utf8") {
 		const file = this.resolve(fullName);
 
 		if (file.exists)
@@ -121,7 +121,7 @@ module.exports = class Node {
 	 * @param options {{encoding: string, flag?: string} | string = "utf8"}
 	 * @return {string} The entire content of the file.
 	 */
-	getContent(options = "utf8"){
+	getContent(options = "utf8") {
 		if (!this.is.file)
 			throw new Error(`The node is not a file: ${this.toString()}`);
 
@@ -137,12 +137,35 @@ module.exports = class Node {
 			.map(name => this.resolve(name));
 	}
 
+	rename(to) {
+		const newNode = this.parent.resolve(to);
+		FileSystem.renameSync(this.absolute, newNode.absolute);
+		return newNode;
+	}
+
+	move(to) {
+		return this.rename(to);
+	}
+
+	copy(to) {
+		const dest = this.parent.resolve(to);
+
+		if (this.is.file)
+			FileSystem.copyFileSync(this.absolute, dest.absolute);
+		else if (this.is.directory) {
+			dest.parent.newDirectory(dest.name);
+			this.children.forEach(child => child.copy(Path.resolve(dest.absolute, child.name)));
+		}
+
+		return dest;
+	}
+
 	/**
 	 * Clear the content of the node:
 	 * * file: clear content.
 	 * * directory: delete children.
 	 */
-	clear(){
+	clear() {
 		if (!this.exists)
 			throw new Error(`Node does not exist: ${this}`);
 
@@ -157,7 +180,7 @@ module.exports = class Node {
 	/**
 	 * Delete current node.
 	 */
-	delete(){
+	delete() {
 		if (!this.exists)
 			return;
 
@@ -171,5 +194,5 @@ module.exports = class Node {
 };
 
 
-const WeakValueMap = require("weakvaluemap");
+const WeakValueMap = require("weak-value-map");
 const cache = new WeakValueMap();

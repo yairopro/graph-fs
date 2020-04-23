@@ -14,9 +14,13 @@
     "jest": "^25.2.3"
   },
   "dependencies": {
-    "weakvaluemap": "^0.3.2"
+    "weak-value-map": "^1.0.1"
   },
   "keywords": [
-    "browse", "file", "directory", "graph", "node"
+    "browse",
+    "file",
+    "directory",
+    "graph",
+    "node"
   ]
 }

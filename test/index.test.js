@@ -1,4 +1,4 @@
-const {Node} = require("../src");
+const { Node } = require("../src");
 const cwd = new Node(process.cwd());
 
 test('new Node(string)', () =>
@@ -65,9 +65,7 @@ test('Node.prototype.resolve(string)', () => {
 let generatedDirectory;
 test('Node.prototype.newDirectory(string)', () => {
 	const currentDirectory = new Node(__dirname);
-
-	const subDirectoryName = String(Date.now());
-	generatedDirectory = currentDirectory.newDirectory(subDirectoryName);
+	generatedDirectory = currentDirectory.newDirectory(getRandomName());
 
 	expect(generatedDirectory.exists).toBe(true);
 });
@@ -86,6 +84,31 @@ test('Node.prototype.children', () => {
 		.toEqual([
 			new Node(generatedDirectory.toString() + 'mock')
 		]);
+});
+
+test("Node.prototype.rename(string)", () => {
+	expect(generatedDirectory.exists).toBe(true);
+	const newDirectory = generatedDirectory.rename(getRandomName());
+
+	expect(generatedDirectory.exists).toBe(false);
+	expect(newDirectory.exists).toBe(true);
+
+	generatedDirectory = newDirectory;
+});
+
+test('Node.prototype.copy()', () => {
+	const copyDir = generatedDirectory.copy(getRandomName());
+
+	expect(copyDir.exists).toBe(true); // Check existence
+	generatedDirectory.children.forEach(child => {
+		const copyChild = copyDir.resolve(child.name);
+		expect(copyChild.exists).toBe(true); // Check children existence
+		if (child.is.file) // Check children contents
+			expect(child.getContent()).toBe(copyChild.getContent());
+	});
+
+	copyDir.delete(); // clean
+	expect(copyDir.exists).toBe(false);
 });
 
 test('Node.prototype.clear', () => {
@@ -109,3 +132,10 @@ test('Node.prototype.delete()', () => {
 		.toBe(false);
 });
 
+
+// ----- utility ----
+let last;
+function getRandomName() {
+	while (last === Date.now());
+	return String(last = Date.now());
+}
