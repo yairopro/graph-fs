@@ -74,5 +74,5 @@ newLocation.exists; // true
 **Clean**
 ```
 directory.clear() // delete nodes inside
-directory.delete() // delete directory
+directory.delete() // delete directory and nodes inside
 ```
