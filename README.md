@@ -1,78 +1,85 @@
 # graph-fs
 Allow to browse files like a graph where each file or directory is a node.
 
-```
+```javascript
 const {Node} = require("graph-fs");
 ```
 
 **Instantiate**
-```
-const file = new Node("/path/to/file.ext");
-const directory = new Node(["path", "to", "directory"]);
+```javascript
+const directory = new Node("/path/to/directory");
 
-const sameFile = new Node("/path/to/file.ext");
+const file = directory.resolve('file.ext');
+const sameFile = new Node("/path/to/directory/file.ext");
+
 sameFile === file; // true (same instance)
 ```
 
 **Get infos**
-```
-file.exists; // boolean
-file.is.file; // true
-file.is.directory; // false
+```javascript
+myFile.exists; // boolean
+
+myFile.is.file; // true
+myFile.is.directory; // false
+
+myDirectory.is.directory; // true
+myDirectory.is.file; // false
 ```
 
 **Path & name**
-```
-directory.absolute; // "/path/to/directory"
-directory.toString(); // "/path/to/directory/"
-file.toString(); // "/path/to/file.ext"
-file.name; // "file.ext"
+```javascript
+myDirectory.toString(); // "/path/to/directory/"
+myDirectory.absolute; // "/path/to/directory"
+myDirectory.name; // "directory"
+
+myFile.toString(); // "/path/to/file.ext"
+myFile.absolute; //   "/path/to/file.ext"
+myFile.name; // "file.ext"
 ```
 
 **Navigate**
-```
-const parent = file.parent // Node("/path/to/")
-const directory = file.resolve("..") // idem
-parent === directory // true
+```javascript
+const parent = file.parent
+const sameParent = file.resolve("..")
+parent === sameParent // true
 ```
 
 **Read**
-```
-directory.children; // Node[]
+```javascript
+directory.children; // Node[] of files and directories
 file.getContent([options = "utf8"]); // string
 ```
 
 **Create**
-```
+```javascript
 directory.newFile("newFile.ext", [content]); // Node instance
 directory.newDirectory("new-directory"); // Node instance
 ```
 
 **Rename**
-```
+```javascript
 const changedDir = directory.rename('changed'); // Node instance
 directory.exists; // false
 changedDir.exists; // true
 ```
 
 **Copy**
-```
+```javascript
 const me2 = directory.copy('me2'); // Node instance
 directory.exists; // true
 me2.exists; // true
 ```
 
 **Move**
-```
+```javascript
 const newLocation = directory.move('newLocation'); // Node instance
 directory.exists; // false
 newLocation.exists; // true
-// (Just the same as rename() behind.. 🤫)
 ```
 
 
 **Clean**
-```
+```javascript
 directory.clear() // delete nodes inside
 directory.delete() // delete directory and nodes inside
 ```
