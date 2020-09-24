@@ -80,6 +80,6 @@ newLocation.exists; // true
 
 **Clean**
 ```javascript
-directory.clear() // delete nodes inside
-directory.delete() // delete directory and nodes inside
+directory.clear() // delete all what's inside the directory
+directory.delete() // delete the directory
 ```
