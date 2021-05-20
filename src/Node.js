@@ -1,6 +1,7 @@
-const Path = require("path");
-const FileSystem = require("fs");
-const { lastItemOf, isDefined, toString } = require("./utils");
+const path = require("path");
+const fs = require("fs");
+const WeakValueMap = require("weak-value");
+const { lastItemOf, toString } = require("./utils");
 
 module.exports = class Node {
 	constructor(absolutePath) {
@@ -47,15 +48,14 @@ module.exports = class Node {
 	 * @return {string} Full name of the node.
 	 */
 	get name() {
-		const { path } = this;
-		return lastItemOf(path);
+		return lastItemOf(this.path);
 	}
 
 	/**
 	 * @return {boolean} If the node exists.
 	 */
 	get exists() {
-		return FileSystem.existsSync(this.absolute);
+		return fs.existsSync(this.absolute);
 	}
 
 	/**
@@ -70,7 +70,7 @@ module.exports = class Node {
 	 */
 	get is() {
 		const exists = this.exists;
-		const infos = exists && FileSystem.lstatSync(this.absolute);
+		const infos = exists && fs.lstatSync(this.absolute);
 		return {
 			file: infos && infos.isFile(),
 			directory: infos && infos.isDirectory(),
@@ -82,7 +82,7 @@ module.exports = class Node {
 	 * @return {Node} The node relative from the current one (even if it doesn't exists).
 	 */
 	resolve(relative) {
-		const absolute = Path.resolve(this.absolute, toString(relative));
+		const absolute = path.resolve(this.absolute, toString(relative));
 		return new Node(absolute);
 	}
 
@@ -96,7 +96,7 @@ module.exports = class Node {
 		if (directory.exists)
 			throw new Error("Directory already exists.");
 
-		FileSystem.mkdirSync(directory.absolute);
+		fs.mkdirSync(directory.absolute);
 		return directory;
 	}
 
@@ -112,7 +112,7 @@ module.exports = class Node {
 		if (file.exists)
 			throw new Error("File already exists.");
 
-		FileSystem.writeFileSync(file.absolute, content, options);
+		fs.writeFileSync(file.absolute, content, options);
 
 		return file;
 	}
@@ -125,7 +125,7 @@ module.exports = class Node {
 		if (!this.is.file)
 			throw new Error(`The node is not a file: ${this.toString()}`);
 
-		return FileSystem.readFileSync(this.absolute, options);
+		return fs.readFileSync(this.absolute, options);
 	}
 
 	/**
@@ -133,13 +133,13 @@ module.exports = class Node {
 	 */
 	get children() {
 		const absolute = this.toString(); // needs '/' at end
-		return FileSystem.readdirSync(absolute)
+		return fs.readdirSync(absolute)
 			.map(name => this.resolve(name));
 	}
 
 	rename(to) {
 		const newNode = this.parent.resolve(to);
-		FileSystem.renameSync(this.absolute, newNode.absolute);
+		fs.renameSync(this.absolute, newNode.absolute);
 		return newNode;
 	}
 
@@ -151,10 +151,10 @@ module.exports = class Node {
 		const dest = this.parent.resolve(to);
 
 		if (this.is.file)
-			FileSystem.copyFileSync(this.absolute, dest.absolute);
+			fs.copyFileSync(this.absolute, dest.absolute);
 		else if (this.is.directory) {
 			dest.parent.newDirectory(dest.name);
-			this.children.forEach(child => child.copy(Path.resolve(dest.absolute, child.name)));
+			this.children.forEach(child => child.copy(path.resolve(dest.absolute, child.name)));
 		}
 
 		return dest;
@@ -171,7 +171,7 @@ module.exports = class Node {
 
 		const is = this.is;
 		if (is.file)
-			FileSystem.writeFileSync(this.absolute, "", "utf8");
+			fs.writeFileSync(this.absolute, "", "utf8");
 
 		else if (is.directory)
 			this.children.forEach(child => child.delete());
@@ -187,12 +187,11 @@ module.exports = class Node {
 		const absolute = this.absolute;
 		if (this.is.directory) {
 			this.clear();
-			FileSystem.rmdirSync(absolute);
+			fs.rmdirSync(absolute);
 		} else
-			FileSystem.unlinkSync(absolute);
+			fs.unlinkSync(absolute);
 	}
 };
 
 
-const WeakValueMap = require("weak-value-map");
 const cache = new WeakValueMap();
