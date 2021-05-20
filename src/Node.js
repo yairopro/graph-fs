@@ -51,6 +51,14 @@ module.exports = class Node {
 		return lastItemOf(this.path);
 	}
 
+	get extension() {
+		if (this.is.file) {
+			const splittedName = this.name.split('.');
+			if (splittedName.length > 1)
+				return lastItemOf(splittedName);
+		}
+	}
+
 	/**
 	 * @return {boolean} If the node exists.
 	 */
