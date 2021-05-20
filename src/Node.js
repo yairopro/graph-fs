@@ -62,7 +62,9 @@ module.exports = class Node {
 	 * @return {Node} Parent node.
 	 */
 	get parent() {
-		return this.resolve("..");
+		const parent = this.resolve("..");
+		if (parent !== this)
+			return parent;
 	}
 
 	/**
