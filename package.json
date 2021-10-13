@@ -1,26 +1,63 @@
 {
-  "name": "graph-fs",
-  "version": "0.0.10",
+  "version": "0.1.0",
   "description": "Module to allow to browse files like a graph where each file or directory is a node.",
-  "main": "src/index.js",
-  "repository": "https://github.com/yairopro/graph-fs.git",
-  "author": "yair <yairopro@gmail.com>",
   "license": "MIT",
-  "private": false,
-  "scripts": {
-    "test": "jest"
-  },
-  "devDependencies": {
-    "jest": "^25.2.3"
-  },
-  "dependencies": {
-    "weak-value": "^0.1.0"
-  },
-  "keywords": [
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
     "browse",
     "file",
     "directory",
     "graph",
     "node"
-  ]
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build",
+    "size": "size-limit",
+    "analyze": "size-limit --why"
+  },
+  "peerDependencies": {},
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "name": "graph-fs",
+  "repository": "https://github.com/yairopro/graph-fs.git",
+  "author": "yair <yairopro@gmail.com>",
+  "module": "dist/dist.esm.js",
+  "size-limit": [
+    {
+      "path": "dist/dist.cjs.production.min.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "dist/dist.esm.js",
+      "limit": "10 KB"
+    }
+  ],
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^6.0.3",
+    "husky": "^7.0.2",
+    "size-limit": "^6.0.3",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "weak-value-map": "^1.0.1"
+  }
 }

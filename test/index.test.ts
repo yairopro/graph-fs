@@ -1,4 +1,4 @@
-const { Node } = require("../src");
+import { Node } from "../src";
 const cwd = new Node(process.cwd());
 
 test('new Node(string)', () =>
@@ -23,21 +23,21 @@ test('Node.prototype.toString()', () =>
 
 test('Node.prototype.name', () => {
 	const testFile = __filename.split('/').slice(-1)[0];
-	expect(new Node(__filename).name)
+	expect(new Node(__filename).name())
 		.toBe(testFile)
 });
 
 test('Node.prototype.exists', () => {
 	const currentFile = new Node(__filename);
-	expect(currentFile.exists).toBe(true);
+	expect(currentFile.exists()).toBe(true);
 
 	const falseFile = new Node(__filename + "/impossible.file");
-	expect(falseFile.exists).toBe(false);
+	expect(falseFile.exists()).toBe(false);
 });
 
 test('Node.prototype.parent', () => {
 	const currentFile = new Node(__filename);
-	const currentDirectory = currentFile.parent;
+	const currentDirectory = currentFile.parent();
 
 	expect(currentDirectory)
 		.toBe(new Node(__dirname))
@@ -47,27 +47,27 @@ test('Node.prototype.is', () => {
 	const currentFile = new Node(__filename);
 	const currentDirectory = new Node(__dirname);
 
-	expect(currentFile.is.file).toBe(true);
-	expect(currentFile.is.directory).toBe(false);
-	expect(currentDirectory.is.file).toBe(false);
-	expect(currentDirectory.is.directory).toBe(true);
+	expect(currentFile.is().file).toBe(true);
+	expect(currentFile.is().directory).toBe(false);
+	expect(currentDirectory.is().file).toBe(false);
+	expect(currentDirectory.is().directory).toBe(true);
 });
 
 test('Node.prototype.resolve(string)', () => {
 	const currentFile = new Node(__filename);
-	const currentDirectory = currentFile.parent;
+	const currentDirectory = currentFile.parent();
 
 	expect(currentFile.resolve(".."))
 		.toBe(currentDirectory);
 });
 
 
-let generatedDirectory;
+let generatedDirectory: Node;
 test('Node.prototype.newDirectory(string)', () => {
 	const currentDirectory = new Node(__dirname);
 	generatedDirectory = currentDirectory.newDirectory(getRandomName());
 
-	expect(generatedDirectory.exists).toBe(true);
+	expect(generatedDirectory.exists()).toBe(true);
 });
 
 test('Node.prototype.newFile(string, [string])', () => {
@@ -80,18 +80,18 @@ test('Node.prototype.newFile(string, [string])', () => {
 });
 
 test('Node.prototype.children', () => {
-	expect(generatedDirectory.children)
+	expect(generatedDirectory.children())
 		.toEqual([
 			new Node(generatedDirectory.toString() + 'mock')
 		]);
 });
 
 test("Node.prototype.rename(string)", () => {
-	expect(generatedDirectory.exists).toBe(true);
+	expect(generatedDirectory.exists()).toBe(true);
 	const newDirectory = generatedDirectory.rename(getRandomName());
 
-	expect(generatedDirectory.exists).toBe(false);
-	expect(newDirectory.exists).toBe(true);
+	expect(generatedDirectory.exists()).toBe(false);
+	expect(newDirectory.exists()).toBe(true);
 
 	generatedDirectory = newDirectory;
 });
@@ -99,27 +99,27 @@ test("Node.prototype.rename(string)", () => {
 test('Node.prototype.copy()', () => {
 	const copyDir = generatedDirectory.copy(getRandomName());
 
-	expect(copyDir.exists).toBe(true); // Check existence
-	generatedDirectory.children.forEach(child => {
-		const copyChild = copyDir.resolve(child.name);
-		expect(copyChild.exists).toBe(true); // Check children existence
-		if (child.is.file) // Check children contents
+	expect(copyDir.exists()).toBe(true); // Check existence
+	generatedDirectory.children().forEach(child => {
+		const copyChild = copyDir.resolve(child.name());
+		expect(copyChild.exists()).toBe(true); // Check children existence
+		if (child.is().file) // Check children contents
 			expect(child.getContent()).toBe(copyChild.getContent());
 	});
 
 	copyDir.delete(); // clean
-	expect(copyDir.exists).toBe(false);
+	expect(copyDir.exists()).toBe(false);
 });
 
 test('Node.prototype.clear', () => {
-	const child = generatedDirectory.children[0]; // keep ref to deleted child
+	const child = generatedDirectory.children()[0]; // keep ref to deleted child
 
 	child.clear();
 	expect(child.getContent())
 		.toBe("");
 
 	generatedDirectory.clear();
-	expect(generatedDirectory.children)
+	expect(generatedDirectory.children())
 		.toEqual([]);
 
 	expect(() => child.clear())
@@ -128,13 +128,13 @@ test('Node.prototype.clear', () => {
 
 test('Node.prototype.delete()', () => {
 	generatedDirectory.delete();
-	expect(generatedDirectory.exists)
+	expect(generatedDirectory.exists())
 		.toBe(false);
 });
 
 
 // ----- utility ----
-let last;
+let last: number;
 function getRandomName() {
 	while (last === Date.now());
 	return String(last = Date.now());

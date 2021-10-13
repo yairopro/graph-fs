@@ -1,10 +1,11 @@
-const path = require("path");
-const fs = require("fs");
-const WeakValueMap = require("weak-value");
-const { lastItemOf, toString } = require("./utils");
+import path from "path";
+import fs from "fs";
+import WeakValueMap from "weak-value-map";
+import { lastItemOf, toString } from "./utils";
 
-module.exports = class Node {
-	constructor(absolutePath) {
+class Node {
+	private path: string[] = [];
+	constructor(absolutePath: string | string[]) {
 		// convert to array
 		if (typeof absolutePath === "string") {
 			absolutePath = absolutePath.split('/');
@@ -20,26 +21,25 @@ module.exports = class Node {
 
 		const absolutePathString = absolutePath.join('/');
 		const cached = cache.get(absolutePathString);
-		if (cached)
-			return cached;
-
-		this.path = absolutePath;
-		cache.set(absolutePathString, this);
+		if (!cached) {
+			this.path = absolutePath;
+			cache.set(absolutePathString, this);
+		}
 	}
 
 	/**
 	 * @return {string} Absolute path without '/' at the end.
 	 */
-	get absolute() {
+	absolute(): string {
 		return '/' + this.path.join('/');
 	}
 
 	/**
 	 * @return {string} Absolute path with '/' at the end for directories.
 	 */
-	toString() {
-		let absolute = this.absolute;
-		if (this.is.directory)
+	toString(): string {
+		let absolute = this.absolute();
+		if (this.is().directory)
 			absolute += '/';
 		return absolute;
 	}
@@ -47,13 +47,13 @@ module.exports = class Node {
 	/**
 	 * @return {string} Full name of the node.
 	 */
-	get name() {
-		return lastItemOf(this.path);
+	name(): string {
+		return lastItemOf(this.path) as string;
 	}
 
-	get extension() {
-		if (this.is.file) {
-			const splittedName = this.name.split('.');
+	extension(): any {
+		if (this.is().file) {
+			const splittedName = this.name().split('.');
 			if (splittedName.length > 1)
 				return lastItemOf(splittedName);
 		}
@@ -62,25 +62,26 @@ module.exports = class Node {
 	/**
 	 * @return {boolean} If the node exists.
 	 */
-	get exists() {
-		return fs.existsSync(this.absolute);
+	exists(): boolean {
+		return fs.existsSync(this.absolute());
 	}
 
 	/**
 	 * @return {Node} Parent node.
 	 */
-	get parent() {
+	parent(): Node  {
 		const parent = this.resolve("..");
 		if (parent !== this)
 			return parent;
+		return this;
 	}
 
 	/**
 	 * @return {{file: boolean, directory: boolean}} Object indicating what is the node.
 	 */
-	get is() {
-		const exists = this.exists;
-		const infos = exists && fs.lstatSync(this.absolute);
+	is() {
+		const exists = this.exists();
+		const infos = exists && fs.lstatSync(this.absolute());
 		return {
 			file: infos && infos.isFile(),
 			directory: infos && infos.isDirectory(),
@@ -91,8 +92,8 @@ module.exports = class Node {
 	 * @param relative {string} Relative path from the current node.
 	 * @return {Node} The node relative from the current one (even if it doesn't exists).
 	 */
-	resolve(relative) {
-		const absolute = path.resolve(this.absolute, toString(relative));
+	resolve(relative: string): Node {
+		const absolute = path.resolve(this.absolute(), toString(relative) as string);
 		return new Node(absolute);
 	}
 
@@ -100,13 +101,13 @@ module.exports = class Node {
 	 * @param name {string} Name of the directory to create as child of current node.
 	 * @return {Node} Node instance of the new created child directory.
 	 */
-	newDirectory(name) {
+	newDirectory(name: string): Node {
 		const directory = this.resolve(name);
 
-		if (directory.exists)
+		if (directory.exists())
 			throw new Error("Directory already exists.");
 
-		fs.mkdirSync(directory.absolute);
+		fs.mkdirSync(directory.absolute());
 		return directory;
 	}
 
@@ -116,13 +117,13 @@ module.exports = class Node {
 	 * @param options {WriteFileOptions | string = "utf8"}
 	 * @return {Node} Node instance of the new created child file.
 	 */
-	newFile(fullName, content = "", options = "utf8") {
+	newFile(fullName: string, content: any = "", options: any | undefined = "utf8"): Node {
 		const file = this.resolve(fullName);
 
-		if (file.exists)
+		if (file.exists())
 			throw new Error("File already exists.");
 
-		fs.writeFileSync(file.absolute, content, options);
+		fs.writeFileSync(file.absolute(), content, options);
 
 		return file;
 	}
@@ -131,40 +132,40 @@ module.exports = class Node {
 	 * @param options {{encoding: string, flag?: string} | string = "utf8"}
 	 * @return {string} The entire content of the file.
 	 */
-	getContent(options = "utf8") {
-		if (!this.is.file)
+	getContent(options: (any | string) | undefined = "utf8"): string {
+		if (!this.is().file)
 			throw new Error(`The node is not a file: ${this.toString()}`);
 
-		return fs.readFileSync(this.absolute, options);
+		return fs.readFileSync(this.absolute(), options).toString();
 	}
 
 	/**
 	 * @return {Node[]} Children nodes of the current directory.
 	 */
-	get children() {
+	children(): Node[] {
 		const absolute = this.toString(); // needs '/' at end
 		return fs.readdirSync(absolute)
 			.map(name => this.resolve(name));
 	}
 
-	rename(to) {
-		const newNode = this.parent.resolve(to);
-		fs.renameSync(this.absolute, newNode.absolute);
+	rename(to:string) {
+		const newNode = this.parent().resolve(to);
+		fs.renameSync(this.absolute(), newNode.absolute());
 		return newNode;
 	}
 
-	move(to) {
+	move(to:string) {
 		return this.rename(to);
 	}
 
-	copy(to) {
-		const dest = this.parent.resolve(to);
+	copy(to:string) {
+		const dest = this.parent().resolve(to);
 
-		if (this.is.file)
-			fs.copyFileSync(this.absolute, dest.absolute);
-		else if (this.is.directory) {
-			dest.parent.newDirectory(dest.name);
-			this.children.forEach(child => child.copy(path.resolve(dest.absolute, child.name)));
+		if (this.is().file)
+			fs.copyFileSync(this.absolute(), dest.absolute());
+		else if (this.is().directory) {
+			dest.parent().newDirectory(dest.name());
+			this.children().forEach(child => child.copy(path.resolve(dest.absolute(), child.name())));
 		}
 
 		return dest;
@@ -179,12 +180,12 @@ module.exports = class Node {
 		if (!this.exists)
 			throw new Error(`Node does not exist: ${this}`);
 
-		const is = this.is;
+		const is = this.is();
 		if (is.file)
-			fs.writeFileSync(this.absolute, "", "utf8");
+			fs.writeFileSync(this.absolute(), "", "utf8");
 
 		else if (is.directory)
-			this.children.forEach(child => child.delete());
+			this.children().forEach(child => child.delete());
 	}
 
 	/**
@@ -194,8 +195,8 @@ module.exports = class Node {
 		if (!this.exists)
 			return;
 
-		const absolute = this.absolute;
-		if (this.is.directory) {
+		const absolute = this.absolute();
+		if (this.is().directory) {
 			this.clear();
 			fs.rmdirSync(absolute);
 		} else
@@ -205,3 +206,6 @@ module.exports = class Node {
 
 
 const cache = new WeakValueMap();
+
+export default Node;
+export {Node};
