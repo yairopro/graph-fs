@@ -85,7 +85,7 @@ test('Node.prototype.copy()', () => {
   const copyDir = generatedDirectory.copy(getRandomName());
 
   expect(copyDir.exists()).toBe(true); // Check existence
-  generatedDirectory.children().forEach((child) => {
+  generatedDirectory.children().forEach(child => {
     const copyChild = copyDir.resolve(child.name());
     expect(copyChild.exists()).toBe(true); // Check children existence
     if (child.is().file)
