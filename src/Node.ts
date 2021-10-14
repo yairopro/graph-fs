@@ -1,6 +1,5 @@
 import path from "path";
 import fs from "fs";
-import WeakValueMap from "weak-value-map";
 import { lastItemOf, toString } from "./utils";
 
 class Node {
@@ -19,12 +18,8 @@ class Node {
 				absolutePath = absolutePath.slice(0, -1);
 		}
 
-		const absolutePathString = absolutePath.join('/');
-		const cached = cache.get(absolutePathString);
-		if (!cached) {
-			this.path = absolutePath;
-			cache.set(absolutePathString, this);
-		}
+		this.path = absolutePath;
+
 	}
 
 	/**
@@ -48,15 +43,16 @@ class Node {
 	 * @return {string} Full name of the node.
 	 */
 	name(): string {
-		return lastItemOf(this.path) as string;
+		return lastItemOf(this.path);
 	}
 
-	extension(): any {
+	extension(): string | undefined {
 		if (this.is().file) {
 			const splittedName = this.name().split('.');
 			if (splittedName.length > 1)
 				return lastItemOf(splittedName);
 		}
+		return undefined;
 	}
 
 	/**
@@ -177,7 +173,7 @@ class Node {
 	 * * directory: delete children.
 	 */
 	clear() {
-		if (!this.exists)
+		if (!this.exists())
 			throw new Error(`Node does not exist: ${this}`);
 
 		const is = this.is();
@@ -203,9 +199,6 @@ class Node {
 			fs.unlinkSync(absolute);
 	}
 };
-
-
-const cache = new WeakValueMap();
 
 export default Node;
 export {Node};
