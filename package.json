@@ -1,7 +1,7 @@
 {
   "name": "graph-fs",
-  "version": "0.0.10",
-  "description": "Module to allow to browse files like a graph where each file or directory is a node.",
+  "version": "0.0.11",
+  "description": "Browse files and directories as a graph",
   "main": "src/index.js",
   "repository": "https://github.com/yairopro/graph-fs.git",
   "author": "yair <yairopro@gmail.com>",
@@ -14,7 +14,7 @@
     "jest": "^25.2.3"
   },
   "dependencies": {
-    "weak-value": "^0.1.0"
+    "weak-value": "^0.2.3"
   },
   "keywords": [
     "browse",
