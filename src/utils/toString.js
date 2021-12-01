@@ -1,7 +1,7 @@
-const isDefined = require("./isDefined");
+const {isNil} = require("ramda");
 
 function toString(path){
-    if (isDefined(path))
+    if (!isNil(path))
         return String(path);
 }
 

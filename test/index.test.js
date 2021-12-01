@@ -71,12 +71,28 @@ test('Node.prototype.newDirectory(string)', () => {
 });
 
 test('Node.prototype.newFile(string, [string])', () => {
-	const content = "OK";
-	const generatedFile = generatedDirectory.newFile("mock", content);
+	const CONTENT = "OK";
+	const generatedFile = generatedDirectory.newFile("mock", CONTENT);
 
-	expect(generatedFile.getContent()).toBe(content);
+	expect(generatedFile.getContent()).toBe(CONTENT);
 	expect(() => cwd.getContent())
 		.toThrowError();
+});
+
+test('Node.prototype.overwrite(string)', () => {
+	const CONTENT = "OK2";
+
+	// test for alsready existant file
+	const existantFile = generatedDirectory.resolve("mock");
+	existantFile.overwrite(CONTENT);
+	expect(existantFile.getContent()).toBe(CONTENT);
+
+	// test for non existant path
+	const nonExistantFile = generatedDirectory.resolve("non existant/file");
+	nonExistantFile.overwrite(CONTENT);
+	expect(nonExistantFile.getContent()).toBe(CONTENT);
+
+	nonExistantFile.parent.delete(); // clean for next test node.children
 });
 
 test('Node.prototype.children', () => {

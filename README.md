@@ -52,8 +52,14 @@ file.getContent([options = "utf8"]); // string
 
 **Create**
 ```javascript
-directory.newFile("newFile.ext", [content]); // Node instance
-directory.newDirectory("new-directory"); // Node instance
+// create a new file
+const newFile = directory.newFile("newFile.ext", [content]);
+
+ // create a new directory
+const newDirectory = directory.newDirectory("new-directory");
+
+// force to write a file, even if it or its parents, still don't exist. It will create the full path to it.
+file.overwrite(contentString);
 ```
 
 **Rename**

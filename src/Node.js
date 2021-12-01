@@ -1,7 +1,8 @@
 const path = require("path");
 const fs = require("fs");
 const WeakValueMap = require("weak-value");
-const { lastItemOf, toString } = require("./utils");
+const { toString } = require("./utils");
+const { last } = require('ramda')
 
 module.exports = class Node {
 	constructor(absolutePath) {
@@ -13,7 +14,7 @@ module.exports = class Node {
 			if (!absolutePath[0])
 				absolutePath = absolutePath.slice(1);
 			// remove empty string at end
-			const lastNodeName = lastItemOf(absolutePath);
+			const lastNodeName = last(absolutePath);
 			if (!lastNodeName)
 				absolutePath = absolutePath.slice(0, -1);
 		}
@@ -48,14 +49,14 @@ module.exports = class Node {
 	 * @return {string} Full name of the node.
 	 */
 	get name() {
-		return lastItemOf(this.path);
+		return last(this.path);
 	}
 
 	get extension() {
 		if (this.is.file) {
 			const splittedName = this.name.split('.');
 			if (splittedName.length > 1)
-				return lastItemOf(splittedName);
+				return last(splittedName);
 		}
 	}
 
@@ -200,6 +201,24 @@ module.exports = class Node {
 			fs.rmdirSync(absolute);
 		} else
 			fs.unlinkSync(absolute);
+	}
+
+	/**
+	 * Force to write the content into the node.
+	 * If the node doesn't exist, it will create all the path to it.
+	 * If the node already exists, it will erase its content.
+	 */
+	overwrite(content = "", options = "utf8") {
+		if (this.exists)
+			this.delete();
+		else{
+			console.log(this.parent.absolute);
+			fs.mkdirSync(this.parent.absolute, { recursive: true });
+		}
+
+		fs.writeFileSync(this.absolute, content, options);
+
+		return this;
 	}
 };
 
