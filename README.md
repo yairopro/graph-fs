@@ -52,11 +52,22 @@ file.getContent([options = "utf8"]); // string
 
 **Create**
 ```javascript
-// create a new file
-const newFile = directory.newFile("newFile.ext", [content]);
 
  // create a new directory
 const newDirectory = directory.newDirectory("new-directory");
+
+// create a directory recursively
+const target = dir.resolve('this/path/does/not/exists');
+target.exists; // false
+target.asDirectoryRecursively();
+target.exists; // true
+target.is.directory; // true
+```
+
+**Write**
+```javascript
+// create a new file
+const newFile = directory.newFile("newFile.ext", [content]);
 
 // force to write a file, even if it or its parents, still don't exist. It will create the full path to it.
 file.overwrite(contentString);
