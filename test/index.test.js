@@ -79,6 +79,16 @@ test('Node.prototype.newFile(string, [string])', () => {
 		.toThrowError();
 });
 
+test('Node.prototype.asDirectoryRecursively()', () => {
+	const cDir = generatedDirectory.resolve('a/b/c')
+		.asDirectoryRecursively();
+
+	expect(cDir.exists).toBe(true);
+	expect(cDir.is.directory).toBe(true);
+
+	generatedDirectory.resolve('a').delete(); // clean
+});
+
 test('Node.prototype.overwrite(string)', () => {
 	const CONTENT = "OK2";
 

@@ -211,13 +211,22 @@ module.exports = class Node {
 	overwrite(content = "", options = "utf8") {
 		if (this.exists)
 			this.delete();
-		else{
+		else {
 			console.log(this.parent.absolute);
 			fs.mkdirSync(this.parent.absolute, { recursive: true });
 		}
 
 		fs.writeFileSync(this.absolute, content, options);
 
+		return this;
+	}
+
+	asDirectoryRecursively() {
+		if (!this.exists)
+			fs.mkdirSync(this.toString(), { recursive: true });
+		else if (this.is.file)
+			throw new Error('Node already exists as a file: ' + this.toString());
+			
 		return this;
 	}
 };
