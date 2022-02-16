@@ -1,27 +1,27 @@
 {
-  "name": "graph-fs",
-  "version": "0.0.13",
-  "description": "Browse files and directories as a graph",
-  "main": "src/index.js",
-  "repository": "https://github.com/yairopro/graph-fs.git",
-  "author": "yair <yairopro@gmail.com>",
-  "license": "MIT",
-  "private": false,
-  "scripts": {
-    "test": "jest"
-  },
-  "devDependencies": {
-    "jest": "^25.2.3"
-  },
-  "dependencies": {
-    "ramda": "^0.27.1",
-    "weak-value": "^0.2.3"
-  },
-  "keywords": [
-    "browse",
-    "file",
-    "directory",
-    "graph",
-    "node"
-  ]
+	"name": "graph-fs",
+	"version": "0.0.14",
+	"description": "Browse files and directories as a graph",
+	"main": "src/index.js",
+	"repository": "https://github.com/yairopro/graph-fs.git",
+	"author": "yair <yairopro@gmail.com>",
+	"license": "MIT",
+	"private": false,
+	"scripts": {
+		"test": "jest"
+	},
+	"devDependencies": {
+		"jest": "^25.2.3"
+	},
+	"dependencies": {
+		"ramda": "^0.27.1",
+		"weak-value": "^0.2.3"
+	},
+	"keywords": [
+		"browse",
+		"file",
+		"directory",
+		"graph",
+		"node"
+	]
 }
