@@ -1,14 +1,15 @@
 {
 	"name": "graph-fs",
-	"version": "0.0.14",
+	"version": "0.0.16",
 	"description": "Browse files and directories as a graph",
-	"main": "src/index.js",
+	"main": "dist/index.js",
 	"repository": "https://github.com/yairopro/graph-fs.git",
 	"author": "yair <yairopro@gmail.com>",
 	"license": "MIT",
 	"private": false,
 	"scripts": {
 		"build": "tsc",
+		"deploy": "yarn build && npm publish",
 		"test": "jest"
 	},
 	"devDependencies": {

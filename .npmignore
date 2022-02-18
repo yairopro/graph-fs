@@ -4,4 +4,5 @@ yarn.lock
 package-lock.json
 .idea/
 _testingDirectory/
-dist/
+# do not exclude dist
+src/
