@@ -1,289 +1,303 @@
 import { toString } from "../utils";
 import path from "path";
 import fs, { WriteFileOptions } from "fs";
+
 const WeakValueMap = require("weak-value");
 const { last, flatten, pipe, map, filter } = require('ramda');
 
 export default class Node {
-	path: string[] = [];
+  path: string[] = [];
 
-	constructor(absolutePathArg: string | string[]) {
-		let absolutePath: string[];
+  constructor(absolutePathArg: string | string[]) {
+    let absolutePath: string[];
 
-		// convert to array
-		if (typeof absolutePathArg === "string") {
-			absolutePath = absolutePathArg.split('/');
+    // convert to array
+    if (typeof absolutePathArg === "string") {
+      absolutePath = absolutePathArg.split(path.sep);
 
-			// remove empty string at start
+      // remove empty string at start
 			if (!absolutePath[0])
 				absolutePath = absolutePath.slice(1);
-			// remove empty string at end
-			const lastNodeName = last(absolutePath);
+      // remove empty string at end
+      const lastNodeName = last(absolutePath);
 			if (!lastNodeName)
 				absolutePath = absolutePath.slice(0, -1);
 		}
 		else
 			absolutePath = absolutePathArg;
 
-		const absolutePathString = absolutePath.join('/');
-		const cached = cache.get(absolutePathString);
+    const absolutePathString = absolutePath.join(path.sep);
+    const cached = cache.get(absolutePathString);
 		if (cached)
 			return cached;
 
-		this.path = absolutePath;
-		cache.set(absolutePathString, this);
-	}
+    this.path = absolutePath;
+    cache.set(absolutePathString, this);
+  }
 
-	/**
-	 * @return {string} Absolute path without '/' at the end.
-	 */
-	get absolute(): string {
-		return '/' + this.path.join('/');
-	}
+  /**
+   * @return {string} Absolute path without '/' at the end.
+   */
+  get absolute(): string {
+    return path.resolve(path.sep, ...this.path);
+  }
 
-	/**
-	 * @return {string} Absolute path with '/' at the end for directories.
-	 */
-	toString(): string {
-		let absolute = this.absolute;
-		if (this.is.directory)
-			absolute += '/';
-		return absolute;
-	}
+  /**
+   * @return {string} Absolute path with '/' at the end for directories.
+   */
+  toString(): string {
+    let absolute = this.absolute;
+    if (this.is.directory) 
+		absolute += path.sep;
 
-	/**
-	 * @return {string} Full name of the node.
-	 */
-	get name(): string {
-		return last(this.path);
-	}
+    return absolute;
+  }
 
-	get extension(): string | undefined {
-		if (this.is.file) {
+  /**
+   * @return {string} Full name of the node.
+   */
+  get name(): string {
+    return last(this.path);
+  }
+
+  get extension(): string | undefined {
+    if (this.is.file) {
 			const splittedName = this.name.split('.');
 			if (splittedName.length > 1)
 				return last(splittedName);
-			return "";
-		}
-	}
+      return "";
+    }
+  }
 
-	/**
-	 * @return {boolean} If the node exists.
-	 */
-	get exists(): boolean {
-		return fs.existsSync(this.absolute);
-	}
+  /**
+   * @return {boolean} If the node exists.
+   */
+  get exists(): boolean {
+    return fs.existsSync(this.absolute);
+  }
 
-	/**
-	 * @return {Node} Parent node.
-	 */
-	get parent(): Node | undefined {
-		const parent = this.resolve("..");
+  /**
+   * @return {Node} Parent node.
+   */
+  get parent(): Node | undefined {
+    const parent = this.resolve("..");
 		if (parent !== this)
 			return parent;
-	}
+  }
 
-	/**
-	 * An object that indicates the node's type.
-	 */
+  /**
+   * An object that indicates the node's type.
+   */
 	get is(): { file: boolean, directory: boolean } {
-		const infos = this.exists ? fs.lstatSync(this.absolute) : undefined;
-		return {
-			file: infos?.isFile() || false,
-			directory: infos?.isDirectory() || false,
-		};
-	}
+    const infos = this.exists ? fs.lstatSync(this.absolute) : undefined;
+    return {
+      file: infos?.isFile() || false,
+      directory: infos?.isDirectory() || false,
+    };
+  }
 
-	/**
-	 * Similar to path.resolve() but returns a node rather than a string.
-	 */
-	resolve(relative: string): Node {
-		relative = toString(relative) as string;
-		const absolute = path.resolve(this.absolute, relative);
-		return new Node(absolute);
-	}
+  /**
+   * Similar to path.resolve() but returns a node rather than a string.
+   */
+  resolve(relative: string): Node {
+    relative = toString(relative) as string;
+    const absolute = path.resolve(this.toString(), relative);
+    return new Node(absolute);
+  }
 
-	resolveSibling(relative: string): Node {
-		return (this.parent || this).resolve(relative);
-	}
+  resolveSibling(relative: string): Node {
+    return (this.parent || this).resolve(relative);
+  }
 
-	/**
-	 * Creates a sub-directory. 
-	 * If it already exists, it doesn't do anything.
-	 */
-	newDirectory(name: string): Node {
-		const directory = this.resolve(name);
+  /**
+   * Creates a sub-directory.
+   * If it already exists, it doesn't do anything.
+   */
+  newDirectory(name: string): Node {
+    const directory = this.resolve(name);
 
 		if (!directory.exists)
 			fs.mkdirSync(directory.absolute);
 
-		return directory;
-	}
+    return directory;
+  }
 
-	/**
-	 * Create a sub-file. Throw an error if it already exists.
-	 * @param fullName Name of the file to create as child of current node.
-	 * @param content Content to write inside the file at its creation.
-	 * @param options Encoding. Default "utf8".
-	 * @return {Node} Node instance of the new created child file.
-	 */
-	newFile(fullName: string, content: string | NodeJS.ArrayBufferView = "", options: WriteFileOptions = "utf8"): Node {
-		const file = this.resolve(fullName);
+  /**
+   * Create a sub-file. Throw an error if it already exists.
+   * @param fullName Name of the file to create as child of current node.
+   * @param content Content to write inside the file at its creation.
+   * @param options Encoding. Default "utf8".
+   * @return {Node} Node instance of the new created child file.
+   */
+  newFile(
+    fullName: string,
+    content: string | NodeJS.ArrayBufferView = "",
+    options: WriteFileOptions = "utf8"
+  ): Node {
+    const file = this.resolve(fullName);
 
 		if (file.exists)
 			throw new Error("File already exists.");
 
-		fs.writeFileSync(file.absolute, content, options);
+    fs.writeFileSync(file.toString(), content, options);
 
-		return file;
-	}
+    return file;
+  }
 
-	/**
-	 * Returns the content of a file.
-	 * Throw an error if the node isn't an existing file.
-	 */
-	getContent(options: BufferEncoding = "utf8"): string {
-		if (!this.is.file)
-			throw new Error(`The node is not a file: ${this.toString()}`);
+  /**
+   * Returns the content of a file.
+   * Throw an error if the node isn't an existing file.
+   */
+  getContent(options: BufferEncoding = "utf8"): string {
+    if (!this.is.file)
+      throw new Error(`The node is not a file: ${this.toString()}`);
 
-		return fs.readFileSync(this.absolute, options);
-	}
+    return fs.readFileSync(this.absolute, options);
+  }
 
-	/**
-	 * Children nodes of the current node.
-	 * Returns undefined if the node isn't an existing directory.
-	 */
-	get children(): Node[] | undefined {
-		if (this.is.directory) {
-			const absolute = this.toString(); // needs '/' at end
+  /**
+   * Children nodes of the current node.
+   * Returns undefined if the node isn't an existing directory.
+   */
+  get children(): Node[] | undefined {
+    if (this.is.directory) {
+      const absolute = this.toString(); // needs '/' at end
 			return fs.readdirSync(absolute)
 				.map(name => this.resolve(name));
-		}
-	}
+    }
+  }
 
-	get descendants(): Node[] | undefined {
-		if (this.children)
-			return pipe(
-				map((child: Node) => [child, child.descendants]),
-				flatten,
-				filter(Boolean),
-			)(this.children) as Node[];
-	}
+  get descendants(): Node[] | undefined {
+    if (this.children)
+      return pipe(
+        map((child: Node) => [child, child.descendants]),
+        flatten,
+		filter(Boolean),
+      )(this.children) as Node[];
+  }
 
-	rename(to: string): Node {
-		const newNode = this.resolveSibling(to);
-		fs.renameSync(this.absolute, newNode.absolute);
-		return newNode;
-	}
+  rename(to: string): Node {
+    const newNode = this.resolveSibling(to);
+    fs.renameSync(this.absolute, newNode.absolute);
+    return newNode;
+  }
 
-	/**
-	 * Move the node to the destination.
-	 * - If the destination doesn't exist, it copies to it.
-	 * - If the destination is a file, it throws an error unless overwrite paremeter is true.
-	 * - If the destination is a folder, it will to copy inside of it keeping the name. 
-	 * 		If the sub-node already exists, it throws an error unless overwrite paremeter is true.
-	 * @param to Destination node or path.
-	 * @param overwrite Overwrite the existing destination if true.
-	 * @returns The destination node.
-	 */
-	move(to: string | Node, overwrite?: boolean): Node {
-		const destination = to instanceof Node ? to : this.resolveSibling(to);
+  /**
+   * Move the node to the destination.
+   * - If the destination doesn't exist, it copies to it.
+   * - If the destination is a file, it throws an error unless overwrite paremeter is true.
+   * - If the destination is a folder, it will to copy inside of it keeping the name.
+   * 		If the sub-node already exists, it throws an error unless overwrite paremeter is true.
+   * @param to Destination node or path.
+   * @param overwrite Overwrite the existing destination if true.
+   * @returns The destination node.
+   */
+  move(to: string | Node, overwrite?: boolean): Node {
+    const destination = to instanceof Node ? to : this.resolveSibling(to);
 
 		return moveOrCopy(
 			this, destination,
 			overwrite,
 			terminal => this.rename(terminal.toString())
-		);
-	}
+    );
+  }
 
-	/**
-	 * Copy the node to the destination.
-	 * - If the destination doesn't exist, it copies to it.
-	 * - If the destination is a file, it throws an error unless overwrite paremeter is true.
-	 * - If the destination is a folder, it will to copy inside of it keeping the name. 
-	 * 		If the sub-node already exists, it throws an error unless overwrite paremeter is true.
-	 * @param to Destination node or path.
-	 * @param overwrite Overwrite the existing destination if true.
-	 * @returns The destination node.
-	 */
-	copy(to: string | Node, overwrite?: boolean): Node {
-		const destination: Node = to instanceof Node ? to : this.resolveSibling(to);
+  /**
+   * Copy the node to the destination.
+   * - If the destination doesn't exist, it copies to it.
+   * - If the destination is a file, it throws an error unless overwrite paremeter is true.
+   * - If the destination is a folder, it will to copy inside of it keeping the name.
+   * 		If the sub-node already exists, it throws an error unless overwrite paremeter is true.
+   * @param to Destination node or path.
+   * @param overwrite Overwrite the existing destination if true.
+   * @returns The destination node.
+   */
+  copy(to: string | Node, overwrite?: boolean): Node {
+    const destination: Node = to instanceof Node ? to : this.resolveSibling(to);
 
 		return moveOrCopy(
 			this, destination,
 			overwrite,
 			terminal => {
-				if (this.is.file) {
-					terminal.parent?.asDirectoryRecursively();
-					fs.copyFileSync(this.absolute, terminal.toString());
+      if (this.is.file) {
+        terminal.parent?.asDirectoryRecursively();
+        fs.copyFileSync(this.absolute, terminal.toString());
 				}
 				else {
-					terminal.asDirectoryRecursively();
+        terminal.asDirectoryRecursively();
 					this.children?.forEach(child =>
-						child.copy(terminal.resolve(child.name))
-					);
-				}
-			}
-		);
-	}
+          child.copy(terminal.resolve(child.name))
+        );
+      }
+		}
+	);
+  }
 
-	/**
-	 * Clear the content of the node:
-	 * * for a file: clear content.
-	 * * for a directory: delete its descendants.
-	 */
-	clear(): Node {
+  /**
+   * Clear the content of the node:
+   * * for a file: clear content.
+   * * for a directory: delete its descendants.
+   */
+  clear(): Node {
 		if (this.is.file)
 			fs.writeFileSync(this.absolute, "", "utf8");
-		else if (this.children) {
-			this.delete();
-			this.asDirectoryRecursively();
-		};
-
-		return this;
+    else if (this.children) {
+      this.delete();
+      this.asDirectoryRecursively();
 	}
 
-	/**
-	 * Delete current node.
-	 */
-	delete(): void {
-		if (this.exists)
-			fs.rmSync(this.toString(), { recursive: true, force: true });
-	}
+    return this;
+  }
 
-	/**
-	 * Force to write the content into the node.
-	 * If the node doesn't exist, it will create all the path to it.
-	 * If the node already exists, it will erase its content.
-	 * @returns The current node.
-	 */
-	overwrite(content: string | Buffer = "", options: WriteFileOptions = "utf8"): Node {
-		if (!this.parent)
-			throw new Error('Cannot overwrite root directory.');
+  /**
+   * Delete current node.
+   */
+  delete(): void {
+    if (this.exists)
+      fs.rmSync(this.toString(), { recursive: true, force: true });
+  }
 
-		this.delete();
-		this.parent.asDirectoryRecursively();
-		this.parent.newFile(this.name, content, options);
+  /**
+   * Force to write the content into the node.
+   * If the node doesn't exist, it will create all the path to it.
+   * If the node already exists, it will erase its content.
+   * @returns The current node.
+   */
+  overwrite(
+    content: string | Buffer = "",
+    options: WriteFileOptions = "utf8"
+  ): Node {
+    if (!this.parent) 
+		throw new Error("Cannot overwrite root directory.");
 
-		return this;
-	}
+    this.delete();
+    this.parent.asDirectoryRecursively();
+    this.parent.newFile(this.name, content, options);
 
-	/**
-	 * Creates the node as a directory, with all its ascendants.
-	 * Usefull to make sure a directory exists before adding content to it.
-	 */
-	asDirectoryRecursively() {
+    return this;
+  }
+
+  /**
+   * Creates the node as a directory, with all its ascendants.
+   * Useful to make sure a directory exists before adding content to it.
+   */
+  asDirectoryRecursively() {
 		if (!this.exists)
 			fs.mkdirSync(this.toString(), { recursive: true });
-		else if (this.is.file)
-			throw new Error('Node already exists as a file: ' + this.toString());
+    else if (this.is.file)
+      throw new Error("Node already exists as a file: " + this.toString());
 
-		return this;
-	}
+    return this;
+  }
+
+  static rootPath = path.parse(process.cwd()).root;
+  static root: Node;
 }
 
-
+const isUnixLike = path.sep == '/';
 const cache: any = new WeakValueMap();
+Node.root = new Node(Node.rootPath);
+
 
 function createCollisionError(destination: Node | string): Error {
 	return new Error(`Destination file already exists. Set 2nd parameter to true to overwrite.\nDestination: ${destination}`);

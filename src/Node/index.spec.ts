@@ -1,4 +1,5 @@
 import Node from './index'
+import {sep as separator} from "path"
 
 const testingDirectoryName = '_testingDirectory';
 const testingDirectory = new Node(process.cwd()).resolve(testingDirectoryName);
@@ -8,15 +9,15 @@ afterAll(() => testingDirectory.delete());
 
 
 test('Node constructor', () => {
-	const abcNode = new Node("/a/b/c");
-	expect(abcNode).toBeDefined();
+	const currentDir = new Node(__dirname);
+	expect(currentDir).toBeDefined();
 
-	expect(new Node(['a', 'b', 'c'])).toBe(abcNode);
+	expect(new Node(__dirname)).toBe(currentDir);
 });
 
 test('Node.prototype.toString()', () =>
 	expect(testingDirectory.toString())
-		.toBe(testingDirectory.absolute + '/')
+		.toBe(testingDirectory.absolute + separator)
 );
 
 test('Node.prototype.name', () => {
@@ -38,8 +39,7 @@ test('Node.prototype.parent', () => {
 	expect(currentFile.parent)
 		.toBe(currentDirectory);
 
-	const root = new Node('/');
-	expect(root.parent).toBe(undefined);
+	expect(Node.root.parent).toBe(undefined);
 });
 
 test('Node.prototype.is', () => {
@@ -151,7 +151,7 @@ test('Node.prototype.copy()', () => {
 	expect(subFile2.getContent()).toBe(file1.getContent());
 
 	// copy dir
-	dirA.newDirectory('sub').newFile(String(new Date()));
+	dirA.newDirectory('sub').newFile(String(Date.now()));
 	const dirB = dirA.copy('b');
 	expect(dirB.exists).toBe(true);
 
