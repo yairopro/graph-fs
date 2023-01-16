@@ -17,11 +17,11 @@ test('Node constructor', () => {
 
 test('Node.prototype.toString()', () =>
 	expect(testingDirectory.toString())
-		.toBe(testingDirectory.absolute + separator)
+		.toBe(testingDirectory.path + separator)
 );
 
 test('Node.prototype.name', () => {
-	expect(testingDirectory.name)
+	expect(testingDirectory.basename)
 		.toBe(testingDirectoryName);
 });
 
@@ -119,14 +119,14 @@ test("Node.prototype.rename(string)", () => {
 	const b = a.rename('b');
 	expect(a.exists).toBe(false);
 	expect(b.exists).toBe(true);
-	expect(b.name).toBe('b');
+	expect(b.basename).toBe('b');
 
 	// rename file
 	const f1 = dir.newFile('f1');
 	const f2 = dir.rename('f2');
 	expect(f1.exists).toBe(false);
 	expect(f2.exists).toBe(true);
-	expect(f2.name).toBe('f2');
+	expect(f2.basename).toBe('f2');
 });
 
 test('Node.prototype.copy()', () => {
@@ -161,7 +161,7 @@ test('Node.prototype.copy()', () => {
 	const dirC = dir.newDirectory('c');
 	dirA.copy(dirC);
 	expect(
-		getFilesTable(dirC.resolve(dirA.name))
+		getFilesTable(dirC.resolve(dirA.basename))
 	).toEqual(getFilesTable(dirA));
 
 	// overwrite dir to  file
@@ -210,7 +210,7 @@ test('Node.prototype.delete()', () => {
 function getFilesTable(dir: Node): [string, string][] | undefined {
 	return dir.descendants?.filter(child => child.is.file)
 		.map(file => {
-			const path = file.absolute.slice(dir.toString().length);
+			const path = file.path.slice(dir.path.length);
 			return [path, file.getContent()];
 		});
 }
