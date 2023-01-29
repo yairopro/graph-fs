@@ -1,6 +1,9 @@
 # ❄️ graph-fs
 Browse files and directories in a graph.
 
+Supports windows now!
+
+
 ```javascript
 const {Node} = require("graph-fs");
 ```
@@ -8,8 +11,8 @@ const {Node} = require("graph-fs");
 **Instantiate**
 ```javascript
 const directory = new Node("/path/to/directory");
-
 const file = directory.resolve('file.ext');
+
 const sameFile = new Node("/path/to/directory/file.ext");
 
 sameFile === file; // true (same instance)
@@ -21,45 +24,36 @@ myFile.exists; // boolean
 
 myFile.is.file; // true
 myFile.is.directory; // false
-
-myDirectory.is.directory; // true
-myDirectory.is.file; // false
 ```
 
 **Path & name**
 ```javascript
-myDirectory.toString(); // "/path/to/directory/"
-myDirectory.absolute; // "/path/to/directory"
-myDirectory.name; // "directory"
-
+myFile.basename; // "file.ext"
 myFile.toString(); // "/path/to/file.ext"
-myFile.absolute; //   "/path/to/file.ext"
-myFile.name; // "file.ext"
 ```
 
 **Navigate**
 ```javascript
-const parent = file.parent
-const sameParent = file.resolve("..")
-parent === sameParent // true
+const parent = file.parent;
+const notes = file.resolve("notes.txt");
+const children = directory.children; // children Node[]
+const descendants = directory.getDescendants; // All descendants nodes flattened
 ```
 
 **Read**
 ```javascript
-directory.children; // Node[] of files and directories
-file.getContent([options = "utf8"]); // string
+const content = file.getContent(); // accepts fs options as parameter
 ```
 
 **Create**
 ```javascript
-
  // create a new directory
 const newDirectory = directory.newDirectory("new-directory");
 
 // create a directory recursively
 const target = dir.resolve('this/path/does/not/exists');
 target.exists; // false
-target.asDirectoryRecursively();
+target.asDirectory();
 target.exists; // true
 target.is.directory; // true
 ```
@@ -100,3 +94,10 @@ newLocation.exists; // true
 directory.clear() // delete all what's inside the directory
 directory.delete() // delete the directory
 ```
+
+
+Breaking changes from v0 to v1:  
+	- `.path` is a string.
+	- `.name` is now `.basename`.
+	- `.descendants` is now `.getDescendants()`
+	- `.asDirectoryRecursively()` is now `.asDirectory()`

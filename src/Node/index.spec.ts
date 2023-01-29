@@ -1,26 +1,27 @@
 import Node from './index'
+import {sep as separator} from "path"
 
 const testingDirectoryName = '_testingDirectory';
 const testingDirectory = new Node(process.cwd()).resolve(testingDirectoryName);
 
-beforeAll(() => testingDirectory.asDirectoryRecursively().clear())
+beforeAll(() => testingDirectory.asDirectory().clear())
 afterAll(() => testingDirectory.delete());
 
 
 test('Node constructor', () => {
-	const abcNode = new Node("/a/b/c");
-	expect(abcNode).toBeDefined();
+	const currentDir = new Node(__dirname);
+	expect(currentDir).toBeDefined();
 
-	expect(new Node(['a', 'b', 'c'])).toBe(abcNode);
+	expect(new Node(__dirname)).toBe(currentDir);
 });
 
 test('Node.prototype.toString()', () =>
 	expect(testingDirectory.toString())
-		.toBe(testingDirectory.absolute + '/')
+		.toBe(testingDirectory.path + separator)
 );
 
 test('Node.prototype.name', () => {
-	expect(testingDirectory.name)
+	expect(testingDirectory.basename)
 		.toBe(testingDirectoryName);
 });
 
@@ -38,8 +39,7 @@ test('Node.prototype.parent', () => {
 	expect(currentFile.parent)
 		.toBe(currentDirectory);
 
-	const root = new Node('/');
-	expect(root.parent).toBe(undefined);
+	expect(Node.root.parent).toBe(undefined);
 });
 
 test('Node.prototype.is', () => {
@@ -75,9 +75,9 @@ test('Node.prototype.newFile(string, [string])', () => {
 		.toThrowError();
 });
 
-test('Node.prototype.asDirectoryRecursively()', () => {
-	const cDir = testingDirectory.resolve('Node.prototype.asDirectoryRecursively/a/b/c')
-		.asDirectoryRecursively();
+test('Node.prototype.asDirectory()', () => {
+	const cDir = testingDirectory.resolve('Node.prototype.asDirectory/a/b/c')
+		.asDirectory();
 
 	expect(cDir.exists).toBe(true);
 	expect(cDir.is.directory).toBe(true);
@@ -119,14 +119,14 @@ test("Node.prototype.rename(string)", () => {
 	const b = a.rename('b');
 	expect(a.exists).toBe(false);
 	expect(b.exists).toBe(true);
-	expect(b.name).toBe('b');
+	expect(b.basename).toBe('b');
 
 	// rename file
 	const f1 = dir.newFile('f1');
 	const f2 = dir.rename('f2');
 	expect(f1.exists).toBe(false);
 	expect(f2.exists).toBe(true);
-	expect(f2.name).toBe('f2');
+	expect(f2.basename).toBe('f2');
 });
 
 test('Node.prototype.copy()', () => {
@@ -151,7 +151,7 @@ test('Node.prototype.copy()', () => {
 	expect(subFile2.getContent()).toBe(file1.getContent());
 
 	// copy dir
-	dirA.newDirectory('sub').newFile(String(new Date()));
+	dirA.newDirectory('sub').newFile(String(Date.now()));
 	const dirB = dirA.copy('b');
 	expect(dirB.exists).toBe(true);
 
@@ -161,7 +161,7 @@ test('Node.prototype.copy()', () => {
 	const dirC = dir.newDirectory('c');
 	dirA.copy(dirC);
 	expect(
-		getFilesTable(dirC.resolve(dirA.name))
+		getFilesTable(dirC.resolve(dirA.basename))
 	).toEqual(getFilesTable(dirA));
 
 	// overwrite dir to  file
@@ -208,9 +208,9 @@ test('Node.prototype.delete()', () => {
  * [path from dir, content][]
  */
 function getFilesTable(dir: Node): [string, string][] | undefined {
-	return dir.descendants?.filter(child => child.is.file)
+	return dir.getDescendants()?.filter(child => child.is.file)
 		.map(file => {
-			const path = file.absolute.slice(dir.toString().length);
+			const path = file.path.slice(dir.path.length);
 			return [path, file.getContent()];
 		});
 }
