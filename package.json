@@ -1,6 +1,6 @@
 {
 	"name": "graph-fs",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Browse files and directories as a graph",
 	"main": "dist/index.js",
 	"repository": "https://github.com/yairopro/graph-fs.git",
