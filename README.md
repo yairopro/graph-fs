@@ -1,8 +1,9 @@
 # ❄️ graph-fs
-Browse files and directories like in a graph.
+**Browse files and directories like in a graph.**
 
 Leave a star on github please if you like this package 🙏🏻
 
+---
 
 ```javascript
 const {Node} = require("graph-fs");
