@@ -1,7 +1,7 @@
 # ❄️ graph-fs
-Browse files and directories in a graph.
+Browse files and directories like in a graph.
 
-Supports windows now!
+Leave a star on github please if you like this package 🙏🏻
 
 
 ```javascript
