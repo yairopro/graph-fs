@@ -1,16 +1,16 @@
-# ❄️ graph-fs
-**Browse files and directories like in a graph.**
 
-Leave a star on github please if you like this package 🙏🏻
+![plot](./graph-fs.png)
+
+Please, star on github if you like this package. ⭐️
 
 ---
 
-```javascript
+```typescript
 const {Node} = require("graph-fs");
 ```
 
 **Instantiate**
-```javascript
+```typescript
 const directory = new Node("/path/to/directory");
 const file = directory.resolve('file.ext');
 
@@ -20,21 +20,23 @@ sameFile === file; // true (same instance)
 ```
 
 **Get infos**
-```javascript
+```typescript
 myFile.exists; // boolean
 
 myFile.is.file; // true
 myFile.is.directory; // false
 ```
 
-**Path & name**
-```javascript
-myFile.basename; // "file.ext"
-myFile.toString(); // "/path/to/file.ext"
+**Path, name & extension**
+```typescript
+const file = new Node(__filename);
+file.toString(); // "/path/to/file.js"
+file.basename; // "file.js"
+file.extension; // "js"
 ```
 
 **Navigate**
-```javascript
+```typescript
 const parent = file.parent;
 const notes = file.resolve("notes.txt");
 const children = directory.children; // children Node[]
@@ -42,12 +44,12 @@ const descendants = directory.getDescendants; // All descendants nodes flattened
 ```
 
 **Read**
-```javascript
+```typescript
 const content = file.getContent(); // accepts fs options as parameter
 ```
 
 **Create**
-```javascript
+```typescript
  // create a new directory
 const newDirectory = directory.newDirectory("new-directory");
 
@@ -60,7 +62,7 @@ target.is.directory; // true
 ```
 
 **Write**
-```javascript
+```typescript
 // create a new file
 const newFile = directory.newFile("newFile.ext", [content]);
 
@@ -69,21 +71,21 @@ file.overwrite(contentString);
 ```
 
 **Rename**
-```javascript
+```typescript
 const changedDir = directory.rename('changed'); // Node instance
 directory.exists; // false
 changedDir.exists; // true
 ```
 
 **Copy**
-```javascript
+```typescript
 const me2 = directory.copy('me2'); // Node instance
 directory.exists; // true
 me2.exists; // true
 ```
 
 **Move**
-```javascript
+```typescript
 const newLocation = directory.move('newLocation'); // Node instance
 directory.exists; // false
 newLocation.exists; // true
@@ -91,7 +93,7 @@ newLocation.exists; // true
 
 
 **Clean**
-```javascript
+```typescript
 directory.clear() // delete all what's inside the directory
 directory.delete() // delete the directory
 ```

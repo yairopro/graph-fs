@@ -1,6 +1,6 @@
 {
 	"name": "graph-fs",
-	"version": "1.0.2",
+	"version": "1.1.0",
 	"description": "Browse files and directories as a graph",
 	"main": "dist/index.js",
 	"repository": "https://github.com/yairopro/graph-fs.git",
@@ -14,6 +14,7 @@
 	},
 	"devDependencies": {
 		"@types/jest": "^27.4.0",
+		"@types/node": "^20.4.5",
 		"jest": "^27.5.1",
 		"jest-node-exports-resolver": "^1.1.5",
 		"ts-jest": "^27.1.3",

@@ -50,7 +50,7 @@ export default class Node {
 	 *  @return The last part of the basename after the last dot, or undefined if there's no dot in the basename.
 	 */
 	get extension(): string | undefined {
-		return extname(this.path) || undefined;
+		return extname(this.path)?.slice(1) || undefined;
 	}
 
 	/**
